@@ -40,6 +40,7 @@
 
 #include "exynos_drm_drv.h"
 #include "exynos_drm_hdmi.h"
+#include "exynos_drm_iommu.h"
 
 #include "exynos_hdmi.h"
 
@@ -1946,6 +1947,25 @@ static void hdmi_conf_apply(struct hdmi_context *hdata)
 	hdmi_regs_dump(hdata, "start");
 }
 
+static int hdmi_iommu_on(void *ctx, bool enable)
+{
+	struct exynos_drm_hdmi_context *drm_hdmi_ctx;
+	struct hdmi_context *hdata = ctx;
+	struct drm_device *drm_dev;
+
+	drm_hdmi_ctx = hdata->parent_ctx;
+	drm_dev = drm_hdmi_ctx->drm_dev;
+
+	if (is_drm_iommu_supported(drm_dev)) {
+		if (enable)
+			return drm_iommu_attach_device(drm_dev, hdata->dev);
+
+		drm_iommu_detach_device(drm_dev, hdata->dev);
+	}
+
+	return 0;
+}
+
 static void hdmi_mode_fixup(void *ctx, struct drm_connector *connector,
 				const struct drm_display_mode *mode,
 				struct drm_display_mode *adjusted_mode)
@@ -2102,6 +2122,7 @@ static struct exynos_hdmi_ops hdmi_ops = {
 	.check_timing	= hdmi_check_timing,
 
 	/* manager */
+	.iommu_on	= hdmi_iommu_on,
 	.mode_fixup	= hdmi_mode_fixup,
 	.mode_set	= hdmi_mode_set,
 	.get_max_resol	= hdmi_get_max_resol,

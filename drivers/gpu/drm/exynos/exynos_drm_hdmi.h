@@ -50,6 +50,7 @@ struct exynos_hdmi_ops {
 	int (*power_on)(void *ctx, int mode);
 
 	/* manager */
+	int (*iommu_on)(void *ctx, bool enable);
 	void (*mode_fixup)(void *ctx, struct drm_connector *connector,
 				const struct drm_display_mode *mode,
 				struct drm_display_mode *adjusted_mode);
